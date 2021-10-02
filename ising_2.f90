@@ -50,7 +50,7 @@ allocate(S(nmatriz,nmatriz), Magnetizacion(niter),Emedia(niter))
 !open(3, file = 'distribucion.dat', status='old') 
 !open(4, file=  'histograma.dat', status='old')
 open(5, file= 'Magnetizacion.dat',status='old')
-open(16, file= 'S.dat',status='old')
+open(16, file= 'S.dat',status='old') !! si tomo el numero 6 no escribe en pantalla
 !!!!!!!!!
 
 !read(1,*) n
