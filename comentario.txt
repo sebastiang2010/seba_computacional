@@ -1,0 +1,3 @@
+Buscar bien las formulas 
+Analizar lo de los que no cambian 
+Ver el tema de grafico de la matriz 
