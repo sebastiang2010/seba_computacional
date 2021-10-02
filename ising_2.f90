@@ -50,7 +50,7 @@ allocate(S(nmatriz,nmatriz), Magnetizacion(niter),Emedia(niter))
 !open(3, file = 'distribucion.dat', status='old') 
 !open(4, file=  'histograma.dat', status='old')
 open(5, file= 'Magnetizacion.dat',status='old')
-!open(6, file= 'S.dat',status='old')
+open(16, file= 'S.dat',status='old')
 !!!!!!!!!
 
 !read(1,*) n
@@ -69,17 +69,18 @@ do i=1,nmatriz
    x=-1
    end if
    S(i,j)=x 
-   !write(6,*) "S(",i,",",j,"):", x 
+   write(16,*) "S(",i,",",j,"):", x 
    !print *, "i: ", i , "j: ", j, x
 end do 
 end do 
+close(16)
 
 cont_no_cambia=0
 
 !print *, " " 
 !print *, "Selecciono las filas y columas"
 
-write(5,*) "# n , Magnetizacion(n), Emedia(n)"
+!write(5,*) "# n , Magnetizacion(n), Emedia(n)"
 do n=1,niter
    !do i=1,nissing
      ! do j=1,nissing 
@@ -129,8 +130,6 @@ do n=1,niter
 
 end do 
 
-close(5)
-!close(6)
 
 
 print *, " "
@@ -138,6 +137,9 @@ print *, "No cambia:", cont_no_cambia
 print *, "Cambia:", niter-cont_no_cambia
 print *, " "
 print *, " Fin del programa"
+
+
+close(5)
 
 
 
