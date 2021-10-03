@@ -3,16 +3,20 @@ program issing_1
 	implicit none
 	
 	logical :: es
-	integer :: seed, i, j, nissing, niter,nmatriz, n, f,c,M,cont_no_cambia
+	integer :: seed, i, j, nising, niter,nmatriz,n,f,c,M,cont_no_cambia,cont_dE_menor_que_uni,cont_dE_menor_que_cero
 	!logical :: parar
 	real:: suma,x, dE, beta, KT,p,E
-	real, parameter:: Jota=0.35, Ho=0, T=1, K=1
-	real (kind=8), allocatable :: S(:,:), Magnetizacion(:),Emedia(:)
+	real, parameter:: Jota=1, Ho=0, T=0.01, K=1 
+	real (kind=8), allocatable :: Magnetizacion(:),Emedia(:)
+	integer, allocatable:: S(:,:)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 !! Revisar formulas 
 !! Agregar un contador para todos los casos 
 !! Agregar el espejo 
+!! Agregar el comentario del paper donde explica bien cada paso 
+!! Agregar el significado de J 
 !!
+!! Analizar que pasa con la temperatura en paramagnetico 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	 
 ![NO TOCAR] Inicializa generador de número random
 
@@ -25,36 +29,35 @@ program issing_1
 	else
 		seed = 24583490
 	end if
-
 	call zigset(seed)
 ![FIN NO TOCAR]    
 
+!!!!!!!!!! 
+!!! abro los archivos 
+open(1, file = 'input.dat',status='old')
+!open(2, file = 'output.dat',status='old')
+!open(3, file = 'distribucion.dat', status='old') 
+!open(4, file=  'histograma.dat', status='old')
+open(5, file= 'Magnetizacion.dat',status='old')
+open(16, file= 'S.dat',status='old') !! Ojo porque uni=6 es pantalla no se puede usar 
+!!!!!!!!!
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 !!! inicializo 
-
-nissing=20 
+nising=3
 nmatriz=50!! esto esta por ahora para no repetir la filas y columas 
-niter=20000
+!niter=2000000
+read(1,*) niter
+close(1)
+print *,  " " 
+print *, "Numero de Iteraciones : ", niter 
 
 KT=K*T
 
 !!!!!
 !!! alocate 
-allocate(S(nmatriz,nmatriz), Magnetizacion(niter),Emedia(niter))
+allocate(S(nmatriz,nmatriz), Magnetizacion(niter),Emedia(niter))	
 !!!!!!!
-
-!!!!!!!!!! 
-!!! abro los archivos 
-!open(1, file = 'input.dat',status='old')
-!open(2, file = 'output.dat',status='old')
-!open(3, file = 'distribucion.dat', status='old') 
-!open(4, file=  'histograma.dat', status='old')
-open(5, file= 'Magnetizacion.dat',status='old')
-open(16, file= 'S.dat',status='old') !! si tomo el numero 6 no escribe en pantalla
-!!!!!!!!!
-
-!read(1,*) n
-!close(1)
 
 !!!!!!!!!!!!!!!!!
 !!! Modelo de Ising 
@@ -69,14 +72,20 @@ do i=1,nmatriz
    x=-1
    end if
    S(i,j)=x 
-   write(16,*) "S(",i,",",j,"):", x 
+   !write(16,*) "S(",i,",",j,"):", x 
    !print *, "i: ", i , "j: ", j, x
 end do 
-end do 
+end do
+
+do f=1,nising 
+   write(16,*) (S(f,c),c=1,nising)
+   !write(16,fmt="(i5)") (S(f,c), c=1, nising)  
+   end do 
 close(16)
 
 cont_no_cambia=0
-
+cont_dE_menor_que_cero=0
+cont_dE_menor_que_uni=0
 !print *, " " 
 !print *, "Selecciono las filas y columas"
 
@@ -84,12 +93,14 @@ cont_no_cambia=0
 do n=1,niter
    !do i=1,nissing
      ! do j=1,nissing 
-        f=nint(uni()*nissing)+1  !init redondea 
-        c=nint(uni()*nissing)+1
+        !! lo corro para que no de el 1,1 
+        !! cuando lo ponga en forma de toroide usar 1       
+        f=nint(uni()*nising)+10 !init redondea 
+        c=nint(uni()*nising)+10 
         !print *," "
         !print *, " Eleccion, fila: ", f, "columna :",c
         !! calculo el delta E 
-        dE=-Jota*S(f,c)*(S(f+1,c)+S(f,c+1)+S(f-1,c)+S(f,c-1))-Ho*S(f,c) 
+        !dE=-Jota*S(f,c)*(S(f+1,c)+S(f,c+1)+S(f-1,c)+S(f,c-1))-Ho*S(f,c) 
         dE=2*Jota*S(f,c)*(S(f+1,c)+S(f,c+1)+S(f-1,c)+S(f,c-1))-Ho*S(f,c) !! sacado de matlab
         !print *, "fila: ", f , "columna: ", c 
         !print *, "Delta E : ", dE  
@@ -98,12 +109,15 @@ do n=1,niter
           !print *, "delta E <0, cambio de estado"
           !! cambio el estado 
           S(f,c)=-S(f,c)
+          cont_dE_menor_que_cero=cont_dE_menor_que_cero+1
+        
         else 
         !! Boltzmann probability of flipping
         !! prob = exp(-dE / kT);
           p=exp(-dE/KT)
           if (p<uni()) then !! no entiendo bien esta parte por que un estado del sistema
           !print *, "Se p<uni(), cambio de estado"
+          cont_dE_menor_que_uni=cont_dE_menor_que_uni+1
           S(f,c)=-S(f,c)
           else 
           !print *, "No se cambia el spin"
@@ -116,31 +130,36 @@ do n=1,niter
   M=0
   E=0
   
-  do f=1,nissing 
-    do c=1,nissing 
+  do f=1,nising 
+    do c=1,nising 
 
     M=M+S(f,c)
     E=S(f,c)*(S(f+1,c)+S(f,c+1)+S(f-1,c)+S(f,c-1))-Ho*S(f,c)
      
     end do 
   end do 
-  Magnetizacion(n)=dble(M)/dble((nissing)**2)
-  Emedia(n)=dble(n)/dble((nissing)**2)
-  write(5,fmt="(i5,x,3f10.4,x,3f10.4)") n , Magnetizacion(n), Emedia(n) 
-
+  Magnetizacion(n)=dble(M)/dble((nising)**2)
+  Emedia(n)=dble(n)/dble((nising)**2)
+  write(5,fmt="(i5,x,f10.4,x,f10.4)") n , Magnetizacion(n), Emedia(n) 
 end do 
-
-
-
-print *, " "
-print *, "No cambia:", cont_no_cambia
-print *, "Cambia:", niter-cont_no_cambia
-print *, " "
-print *, " Fin del programa"
-
 
 close(5)
 
+
+
+print *, " " 
+print *, "Temperatura [K]:", T 
+print *, " "
+print '(" dE<0  %:" f10.4)', 100*dble(cont_dE_menor_que_cero)/dble(niter)
+print *, " "
+print '(" p<uni() %:" f10.4)',100*dble(cont_dE_menor_que_uni)/dble(niter)
+print *, " "
+print  '(" Cambia %:", f10.4)', 100*dble(niter-cont_no_cambia)/dble(niter)
+print *, " "
+print  '(" No cambia %:" f10.4)', 100*dble(cont_no_cambia)/dble(niter)
+print *, " " 
+print *, "Fin del programa"
+print *, " "  
 
 
 !! 
