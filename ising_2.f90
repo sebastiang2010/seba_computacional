@@ -7,7 +7,7 @@ program issing_1
 	!logical :: parar
 	real:: suma,x, dE, beta, KT,p,E
 	real, parameter:: Jota=1, Ho=0, T=0.01, K=1 
-	real (kind=8), allocatable :: Magnetizacion(:),Emedia(:)
+	real (kind=8), allocatable :: Magnetizacion(:),En(:)
 	integer, allocatable:: S(:,:)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 !! Revisar formulas 
@@ -44,7 +44,7 @@ open(16, file= 'S.dat',status='old') !! Ojo porque uni=6 es pantalla no se puede
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 !!! inicializo 
-nising=3
+nising=20
 nmatriz=50!! esto esta por ahora para no repetir la filas y columas 
 !niter=2000000
 read(1,*) niter
@@ -56,7 +56,7 @@ KT=K*T
 
 !!!!!
 !!! alocate 
-allocate(S(nmatriz,nmatriz), Magnetizacion(niter),Emedia(niter))	
+allocate(S(nmatriz,nmatriz), Magnetizacion(niter),En(niter))
 !!!!!!!
 
 !!!!!!!!!!!!!!!!!
@@ -77,8 +77,8 @@ do i=1,nmatriz
 end do 
 end do
 
-do f=1,nising 
-   write(16,*) (S(f,c),c=1,nising)
+do f=10,nising+10 
+   write(16,*) (S(f,c),c=10,nising+10)
    !write(16,fmt="(i5)") (S(f,c), c=1, nising)  
    end do 
 close(16)
@@ -89,7 +89,7 @@ cont_dE_menor_que_uni=0
 !print *, " " 
 !print *, "Selecciono las filas y columas"
 
-!write(5,*) "# n , Magnetizacion(n), Emedia(n)"
+write(5,*) "# n , Magnetizacion(n), Emedia(n)"
 do n=1,niter
    !do i=1,nissing
      ! do j=1,nissing 
@@ -123,29 +123,25 @@ do n=1,niter
           !print *, "No se cambia el spin"
           cont_no_cambia=cont_no_cambia+1
           end if
+              
         end if  
-   !end do 
-  !end do 
-  !!
-  M=0
-  E=0
+          M=0
+          E=0
+          !! esta desde 10 porque esta corrida
+          do f=10,nising+10 
+            do c=10,nising+10 
+              M=M+S(f,c)
+              E=E+S(f,c)*(S(f+1,c)+S(f,c+1)+S(f-1,c)+S(f,c-1))-Ho*S(f,c)      
+           end do 
+         end do 
+         Magnetizacion(n)=M
+         En(n)=E      
+         write(5,fmt="(i7,x,f10.4,x,f10.4)") n , Magnetizacion(n), En(n)  
   
-  do f=1,nising 
-    do c=1,nising 
 
-    M=M+S(f,c)
-    E=S(f,c)*(S(f+1,c)+S(f,c+1)+S(f-1,c)+S(f,c-1))-Ho*S(f,c)
-     
-    end do 
-  end do 
-  Magnetizacion(n)=dble(M)/dble((nising)**2)
-  Emedia(n)=dble(n)/dble((nising)**2)
-  write(5,fmt="(i5,x,f10.4,x,f10.4)") n , Magnetizacion(n), Emedia(n) 
 end do 
 
 close(5)
-
-
 
 print *, " " 
 print *, "Temperatura [K]:", T 
