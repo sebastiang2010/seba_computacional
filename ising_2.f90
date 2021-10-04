@@ -45,8 +45,8 @@ open(7, file='S1.dat',status='old')
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 !!! inicializo 
-nising=4
-nmatriz=4!! esto esta por ahora para no repetir la filas y columas 
+nising=20
+nmatriz=50!! esto esta por ahora para no repetir la filas y columas 
 !niter=1
 read(1,*) niter
 close(1)
@@ -72,7 +72,7 @@ do i=1,nmatriz
    else 
    x=-1
    end if
-   !S(i,j)=x 
+   S(i,j)=x 
    !write(16,*) "S(",i,",",j,"):", x 
    !print *, "i: ", i , "j: ", j, x
 end do 
@@ -138,7 +138,7 @@ do n=1,niter
          end do 
          Magnetizacion(n)=M
          En(n)=E      
-         write(5,fmt="(i7,x,f10.4,x,i3,x,i3,i3,x,i3)") n, T,f,c, Magnetizacion(n), En(n)
+         write(5,fmt="(i7,x,f10.3,x,i5,x,i5,x,x,i5,x,x,i5)") n, T,f,c, Magnetizacion(n), En(n)
   
 
 end do 
