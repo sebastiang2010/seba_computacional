@@ -202,7 +202,7 @@ print '(" Desviacion de M: " f10.4)', desvM
 print *, " --------------------"
 print *, "Fin del programa"
 print *, " "  
-
+   
 
 !! 
 !! FIN FIN edicion
